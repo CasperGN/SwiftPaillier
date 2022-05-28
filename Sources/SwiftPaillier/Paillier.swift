@@ -42,7 +42,7 @@ public final class Paillier {
         return (x-1)/p
     }
 
-    public func decrypt(publicKey: PublicKey, privateKey: PrivateKey, ciphertext: BigUInt, type: DecryptionType = .bigIntDefault) -> BigUInt {
+    /*public func decrypt(publicKey: PublicKey, privateKey: PrivateKey, ciphertext: BigUInt, type: DecryptionType = .bigIntDefault) -> BigUInt {
         switch type {
         case .bigIntFast:
             let mp = (L(x: ciphertext.power(privateKey.p - 1, modulus: privateKey.psq), p: privateKey.p) * privateKey.hp) % privateKey.p
@@ -69,7 +69,7 @@ public final class Paillier {
             let mu = inverse(L(x: mod_exp(publicKey.gnum, lambda, publicKey.nsqnum), p: publicKey.nnum), publicKey.nnum)!
             return BigUInt(((L(x: mod_exp(ciphertext, lambda, publicKey.nsqnum), p: publicKey.nnum) * mu) % publicKey.nnum).string())!
         }
-    }
+    }*/
 
     public func encrypt(_ plaintext: BigUInt, publicKey: PublicKey) -> PaillierEncryption {
         return PaillierEncryption(plaintext, for: publicKey)
@@ -92,21 +92,11 @@ public extension Paillier {
 
     struct PublicKey: Codable {
         let n: BigUInt
-        let g: BigUInt
+        let nn: BigUInt
 
-        // MARK: Precomputed values
-        let nsq: BigUInt
-        let nnum: Bignum
-        let gnum: Bignum
-        let nsqnum: Bignum
-
-        init(n: BigUInt, g: BigUInt) {
+        init(n: BigUInt, nn: BigUInt) {
             self.n = n
-            self.g = g
-            nsq = n.power(2)
-            nnum = Bignum(n.description)
-            gnum = Bignum(g.description)
-            nsqnum = Bignum(nsq.description)
+            self.nn = nn
         }
     }
 
@@ -176,22 +166,22 @@ public extension Paillier {
         }
 
         let n = p*q
-        let g = n+1
+        let nn = n+1
 
-        let privateKey = PrivateKey(p: p, q: q, g: g)
-        let publicKey = PublicKey(n: n, g: g)
+        let privateKey = PrivateKey(p: p, q: q, g: nn)
+        let publicKey = PublicKey(n: n, nn: nn)
         return KeyPair(privateKey: privateKey, publicKey: publicKey)
     }
 }
 
 public class PaillierEncryption: Encodable {
-    private var _ciphertext: Bignum
+    private var _ciphertext: BigUInt
     public var ciphertext: BigUInt {
         get {
-            if !isBlinded {
+            /*if !isBlinded {
                 blind()
-            }
-            return BigUInt(self._ciphertext.string())!
+            }*/
+            return _ciphertext
         }
     }
     private var isBlinded: Bool
@@ -199,32 +189,62 @@ public class PaillierEncryption: Encodable {
 
     public init(_ plaintext: BigUInt, for publicKey: Paillier.PublicKey) {
         self.publicKey = publicKey
-        self._ciphertext = Bignum(0)
+        self._ciphertext = BigUInt(0)
         self.isBlinded = false
         encrypt(plaintext)
     }
 
     public init(ciphertext: BigUInt, for publicKey: Paillier.PublicKey) {
         self.publicKey = publicKey
-        self._ciphertext = Bignum(ciphertext.description)
+        self._ciphertext = ciphertext
         isBlinded = false
     }
+    
+    // This function is derived from https://github.com/CasperGN/rust-paillier/blob/master/src/arithimpl/gmpimpl.rs#L20-L26
+    private func sample(bitsize: Int) -> Int {
+        let bytes = (bitsize - 1) / 8 + 1
+        var buf: Array<Int> = []
+        for _ in 0...bytes {
+            buf.append(Int.random(in: 1..<100) >> (bytes * 8 - bitsize))
+        }
+        return buf.reduce(0, { $0 * 10 + $1 })
+    }
+    
+    private func SampleBelow(n: BigUInt) -> BigUInt {
+        let bits = n.bitWidth
+        
+        while true {
+            let n = sample(bitsize: bits)
+            if n < n {
+                return BigUInt(n)
+            }
+        }
+    }
 
+    private func Randomness(ek: Paillier.PublicKey) -> BigUInt {
+        SampleBelow(n: ek.n)
+    }
+    
     private func encrypt(_ plaintext: BigUInt) {
-        let plaintextnum = Bignum(plaintext.description)
-        _ciphertext = rawEncrypt(plaintextnum)
+        //let plaintextnum = BigUInt(plaintext.description)
+        _ciphertext = rawEncrypt(plaintext)
         isBlinded = false
     }
 
-    private func rawEncrypt(_ plaintext: Bignum) -> Bignum {
-        // Shortcut solution:
-        return (plaintext * publicKey.nnum + 1) % publicKey.nsqnum
+    private func rawEncrypt(_ plaintext: BigUInt) -> BigUInt {
+        
+        let r = Randomness(ek: publicKey)
+        let rn = BigUInt(pow(Double(r), Double(publicKey.n))) % publicKey.nn
+        let gm = BigUInt(plaintext * publicKey.n + 1) % publicKey.nn
+        let c = (gm * rn) % publicKey.nn
+        return BigUInt(c)
+        //return (plaintext * publicKey.nnum + 1) % publicKey.nsqnum
 
         // General (default) solution:
         // _ciphertext = publicKey.g.power(plaintext, modulus: publicKey.nsq)
     }
 
-    private func rawBlind(_ ciphertext: Bignum) -> Bignum {
+    /*private func rawBlind(_ ciphertext: Bignum) -> Bignum {
         let r = Bignum(BigUInt.randomInteger(lessThan: publicKey.n).description)
         let cipher = ciphertext * mod_exp(r, publicKey.nnum, publicKey.nsqnum)
         return cipher % publicKey.nsqnum
@@ -299,5 +319,5 @@ public class PaillierEncryption: Encodable {
         _ciphertext = mod_exp(_ciphertext, scalar, publicKey.nsqnum)
         isBlinded = false
         return self
-    }
+    }*/
 }
