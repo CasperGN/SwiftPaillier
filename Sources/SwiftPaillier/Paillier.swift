@@ -31,12 +31,8 @@ public final class Paillier {
         privateKey = keyPair.privateKey
         publicKey = keyPair.publicKey
         
-        guard let serializedEncryptionKey = try? jsonEncoder.encode(publicKey) as Data else {
-            return ("", "")
-        }
-        guard let serializedDecryptionKey = try? jsonEncoder.encode(privateKey) as Data else {
-            return ("", "")
-        }
+        let serializedEncryptionKey = try! jsonEncoder.encode(publicKey)
+        let serializedDecryptionKey = try! jsonEncoder.encode(privateKey)
         
         let ek = String(data: serializedEncryptionKey, encoding: String.Encoding.utf8)
         let dk = String(data: serializedDecryptionKey, encoding: String.Encoding.utf8)
