@@ -201,23 +201,22 @@ public class PaillierEncryption: Encodable {
     }
     
     // This function is derived from https://github.com/CasperGN/rust-paillier/blob/master/src/arithimpl/gmpimpl.rs#L20-L26
-    private func sample(bitsize: Int) -> Int {
+    private func sample(bitsize: Int) -> BigUInt {
         let bytes = (bitsize - 1) / 8 + 1
         var buf: Array<Int> = []
         for _ in 0...bytes {
             buf.append(Int.random(in: 1..<100) >> (bytes * 8 - bitsize))
         }
-        let res = buf.map(String.init).joined()
-                
-        return Int(res)!
+        
+        return BigUInt.init(stringLiteral: buf.map(String.init).joined())
     }
     
     private func SampleBelow(n: BigUInt) -> BigUInt {
         let bits = n.bitWidth
-        
+                
         while true {
-            let n = sample(bitsize: bits)
-            if n < n {
+            let m = sample(bitsize: bits)
+            if m < n {
                 return BigUInt(n)
             }
         }
