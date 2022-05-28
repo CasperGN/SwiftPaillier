@@ -105,41 +105,39 @@ public extension Paillier {
         let q: BigUInt
 
         // MARK: Precomputed values
-        let psq: BigUInt
-        let qsq: BigUInt
+        let pp: BigUInt
+        let qq: BigUInt
+        let n: BigUInt
+        let nn: BigUInt
+        let pminusone: BigUInt
+        let qminusone: BigUInt
+        let phi: BigUInt
+        let dn: BigUInt
+        let pinv: BigUInt
+        let ppinv: BigUInt
         let hp: BigUInt
         let hq: BigUInt
-        let pinv: BigUInt
 
-        let pnum: Bignum
-        let qnum: Bignum
-        let psqnum: Bignum
-        let qsqnum: Bignum
-        let hpnum: Bignum
-        let hqnum: Bignum
-        let pinvnum: Bignum
-
-        init(p: BigUInt, q: BigUInt, g: BigUInt) {
+        init(   p: BigUInt, q: BigUInt, g: BigUInt) {
             self.p = p
             self.q = q
-            psq = p.power(2)
-            qsq = q.power(2)
-            hp = Paillier.h(on: g, p: p, psq: psq)
-            hq = Paillier.h(on: g, p: q, psq: qsq)
+            pp = p.power(2)
+            qq = q.power(2)
+            n = p * q
+            nn = n * n
+            pminusone = p - 1
+            qminusone = q - 1
+            phi = pminusone * qminusone
+            dn = n.inverse(phi)!
             pinv = p.inverse(q)!
-
-            pnum = Bignum(p.description)
-            qnum = Bignum(q.description)
-            psqnum = Bignum(psq.description)
-            qsqnum = Bignum(qsq.description)
-            hpnum = Bignum(hp.description)
-            hqnum = Bignum(hq.description)
-            pinvnum = Bignum(pinv.description)
+            ppinv = pp.inverse(qq)!
+            hp = Paillier.h(on: g, p: p, pp: pp)
+            hq = Paillier.h(on: g, p: q, pp: qq)
         }
     }
 
-    static func h(on g: BigUInt, p: BigUInt, psq: BigUInt) -> BigUInt {
-        let parameter = (1 - g) % psq
+    static func h(on g: BigUInt, p: BigUInt, pp: BigUInt) -> BigUInt {
+        let parameter = g.power((1 - g), modulus: pp)
         let lOfParameter = (parameter-1)/p
         return lOfParameter.inverse(p)!
     }
