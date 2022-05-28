@@ -208,7 +208,7 @@ public class PaillierEncryption: Encodable {
             buf.append(Int.random(in: 1..<10) >> (bytes * 8 - bitsize))
         }
         
-        return BigUInt(buf.reduce(0, {BigUInt($0) * 10 + BigUInt($1)}))
+        return BigUInt(buf.reduce(0, {$0 * 10 + $1}))
     }
     
     private func SampleBelow(n: BigUInt) -> BigUInt {
@@ -235,7 +235,7 @@ public class PaillierEncryption: Encodable {
     private func rawEncrypt(_ plaintext: BigUInt) -> BigUInt {
         
         let r = Randomness(ek: publicKey)
-        let rn = BigUInt(pow(Double(r), Double(publicKey.n))) % publicKey.nn
+        let rn = r.power(publicKey.n, modulus: publicKey.nn)
         let gm = BigUInt(plaintext * publicKey.n + 1) % publicKey.nn
         let c = (gm * rn) % publicKey.nn
         return BigUInt(c)
