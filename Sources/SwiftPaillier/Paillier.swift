@@ -26,16 +26,13 @@ public final class Paillier {
         self.publicKey = keyPair.publicKey
     }
     
-    public func generateKeys(strength: Int = Paillier.defaultKeysize) -> (String?, String?) {
+    public func generateKeys(strength: Int = Paillier.defaultKeysize) -> (Data, Data) {
         let keyPair = Paillier.generateKeyPair(strength)
         privateKey = keyPair.privateKey
         publicKey = keyPair.publicKey
         
-        let serializedEncryptionKey = try! jsonEncoder.encode(publicKey)
-        let serializedDecryptionKey = try! jsonEncoder.encode(privateKey)
-        
-        let ek = String(data: serializedEncryptionKey, encoding: String.Encoding.utf8)
-        let dk = String(data: serializedDecryptionKey, encoding: String.Encoding.utf8)
+        let ek = try! jsonEncoder.encode(publicKey)
+        let dk = try! jsonEncoder.encode(privateKey)
         
         return (ek, dk)
     }
