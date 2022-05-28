@@ -207,8 +207,9 @@ public class PaillierEncryption: Encodable {
         for _ in 0...bytes {
             buf.append(Int.random(in: 1..<100) >> (bytes * 8 - bitsize))
         }
-
-        return Int(buf.map(String.init).joined())!
+        let res = buf.map(String.init).joined()
+                
+        return Int(res)!
     }
     
     private func SampleBelow(n: BigUInt) -> BigUInt {
