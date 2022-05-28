@@ -139,7 +139,7 @@ public extension Paillier {
     }
 
     static func h(on g: BigUInt, p: BigUInt, psq: BigUInt) -> BigUInt {
-        let parameter = g.power(p-1, modulus: psq)
+        let parameter = (1 - g) % psq
         let lOfParameter = (parameter-1)/p
         return lOfParameter.inverse(p)!
     }
