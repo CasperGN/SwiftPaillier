@@ -10,18 +10,32 @@ import Bignum
 public final class Paillier {
     public static let defaultKeysize = 2048
 
-    private let privateKey: PrivateKey
-    public let publicKey: PublicKey
-
-    public init(strength: Int = Paillier.defaultKeysize) {
-        let keyPair = Paillier.generateKeyPair(strength)
-        privateKey = keyPair.privateKey
-        publicKey = keyPair.publicKey
-    }
+    private var privateKey: PrivateKey
+    public var publicKey: PublicKey
+    
+    let jsonEncoder = JSONEncoder()
 
     public init(keyPair: KeyPair) {
         self.privateKey = keyPair.privateKey
         self.publicKey = keyPair.publicKey
+    }
+    
+    public func generateKeys(strength: Int = Paillier.defaultKeysize) -> (String?, String?) {
+        let keyPair = Paillier.generateKeyPair(strength)
+        privateKey = keyPair.privateKey
+        publicKey = keyPair.publicKey
+        
+        guard let serializedEncryptionKey = try? jsonEncoder.encode(publicKey) as Data else {
+            return ("", "")
+        }
+        guard let serializedDecryptionKey = try? jsonEncoder.encode(privateKey) as Data else {
+            return ("", "")
+        }
+        
+        let ek = String(data: serializedEncryptionKey, encoding: String.Encoding.utf8)
+        let dk = String(data: serializedDecryptionKey, encoding: String.Encoding.utf8)
+        
+        return (ek, dk)
     }
 
     public func L(x: BigUInt, p: BigUInt) -> BigUInt {
@@ -32,7 +46,7 @@ public final class Paillier {
         return (x-1)/p
     }
 
-    public func decrypt(ciphertext: BigUInt, type: DecryptionType = .bigIntDefault) -> BigUInt {
+    public func decrypt(publicKey: PublicKey, privateKey: PrivateKey, ciphertext: BigUInt, type: DecryptionType = .bigIntDefault) -> BigUInt {
         switch type {
         case .bigIntFast:
             let mp = (L(x: ciphertext.power(privateKey.p - 1, modulus: privateKey.psq), p: privateKey.p) * privateKey.hp) % privateKey.p
@@ -61,11 +75,7 @@ public final class Paillier {
         }
     }
 
-    public func decrypt(_ encryption: PaillierEncryption, type: DecryptionType = .bigIntDefault) -> BigUInt {
-        return decrypt(ciphertext: encryption.ciphertext, type: type)
-    }
-
-    public func encrypt(_ plaintext: BigUInt) -> PaillierEncryption {
+    public func encrypt(_ plaintext: BigUInt, publicKey: PublicKey) -> PaillierEncryption {
         return PaillierEncryption(plaintext, for: publicKey)
     }
 
@@ -104,7 +114,7 @@ public extension Paillier {
         }
     }
 
-    struct PrivateKey {
+    struct PrivateKey: Codable {
         let p: BigUInt
         let q: BigUInt
 
