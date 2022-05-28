@@ -184,7 +184,7 @@ public extension Paillier {
     }
 }
 
-public class PaillierEncryption {
+public class PaillierEncryption: Codable {
     private var _ciphertext: Bignum
     public var ciphertext: BigUInt {
         get {
