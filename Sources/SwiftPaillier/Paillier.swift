@@ -166,7 +166,7 @@ public extension Paillier {
         }
 
         let n = p*q
-        let nn = n+1
+        let nn = n * n
 
         let privateKey = PrivateKey(p: p, q: q, g: nn)
         let publicKey = PublicKey(n: n, nn: nn)
