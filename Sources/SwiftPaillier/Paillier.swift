@@ -14,6 +14,12 @@ public final class Paillier {
     public var publicKey: PublicKey
     
     let jsonEncoder = JSONEncoder()
+    
+    public init(strength: Int = Paillier.defaultKeysize) {
+        let keyPair = Paillier.generateKeyPair(strength)
+        privateKey = keyPair.privateKey
+        publicKey = keyPair.publicKey
+    }
 
     public init(keyPair: KeyPair) {
         self.privateKey = keyPair.privateKey
