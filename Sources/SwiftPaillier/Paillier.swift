@@ -10,7 +10,7 @@ import Bignum
 public final class Paillier {
     public static let defaultKeysize = 2048
 
-    private var privateKey: PrivateKey
+    public var privateKey: PrivateKey
     public var publicKey: PublicKey
     
     let jsonEncoder = JSONEncoder()
