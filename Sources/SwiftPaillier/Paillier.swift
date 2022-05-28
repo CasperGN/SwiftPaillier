@@ -139,7 +139,7 @@ public extension Paillier {
     }
 
     static func h(on g: BigUInt, p: BigUInt, psq: BigUInt) -> BigUInt {
-        let parameter = g.power(p-1, modulus: psq) % psq
+        let parameter = g.power(p-1, modulus: psq)
         let lOfParameter = (parameter-1)/p
         return lOfParameter.inverse(p)!
     }
@@ -168,7 +168,7 @@ public extension Paillier {
         let n = p*q
         let nn = n * n
 
-        let privateKey = PrivateKey(p: p, q: q, g: nn)
+        let privateKey = PrivateKey(p: p, q: q, g: n)
         let publicKey = PublicKey(n: n, nn: nn)
         return KeyPair(privateKey: privateKey, publicKey: publicKey)
     }
