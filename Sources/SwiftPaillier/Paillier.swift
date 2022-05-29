@@ -208,7 +208,7 @@ public class PaillierEncryption: Encodable {
         //return (plaintext * publicKey.n + 1) % publicKey.nn
 
         // General (default) solution:
-        return publicKey.g.power(plaintext, modulus: publicKey.nn)
+        return publicKey.n.power(plaintext, modulus: publicKey.nn)
     }
 
     /*private func rawBlind(_ ciphertext: Bignum) -> Bignum {
