@@ -8,7 +8,7 @@
 import BigInt
 
 public func SamplePrime(bitsize: Int) -> BigUInt {
-    let one = BigInt.init(stringLiteral: "1")
+    let one = BigUInt.init(stringLiteral: "1")
     let two = one + one
 
     while true {
