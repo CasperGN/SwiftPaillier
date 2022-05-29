@@ -12,10 +12,12 @@ public func SamplePrime(bitsize: Int) -> BigUInt {
     let two = one + one
 
     while true {
-        var candidate = sample(bitsize: bitsize)
+
+        var candidate = BigUInt.randomInteger(withExactWidth: bitsize)
         
-        // Flip LSB of candidate
-        // TODO - BitManipulation::set_bit(&mut candidate, 0, true);
+        if (candidate % 2 == 0) {
+            candidate += one // Now it is odd
+        }
         
         // Set MSB of candidate
         // TODO - BitManipulation::set_bit(&mut candidate, bitsize - 1, true);
