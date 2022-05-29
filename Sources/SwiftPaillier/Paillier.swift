@@ -42,19 +42,20 @@ public final class Paillier {
         return (x-1)/p
     }
 
-    /*public func decrypt(publicKey: PublicKey, privateKey: PrivateKey, ciphertext: BigUInt, type: DecryptionType = .bigIntDefault) -> BigUInt {
-        switch type {
-        case .bigIntFast:
-            let mp = (L(x: ciphertext.power(privateKey.p - 1, modulus: privateKey.psq), p: privateKey.p) * privateKey.hp) % privateKey.p
-            let mq = (L(x: ciphertext.power(privateKey.q - 1, modulus: privateKey.qsq), p: privateKey.q) * privateKey.hq) % privateKey.q
+    /*public func decrypt(publicKey: PublicKey, privateKey: PrivateKey, ciphertext: BigUInt) -> BigUInt {
+        let e = ((ciphertext * ciphertext) * (privateKey.p - BigUInt(1)))
+        debugPrint(e)
+        debugPrint(privateKey.psq)
+        let mp = (L(x: ciphertext.power(privateKey.p - 1, modulus: privateKey.psq), p: privateKey.p) * privateKey.hp) % privateKey.p
+        let mq = (L(x: ciphertext.power(privateKey.q - 1, modulus: privateKey.qsq), p: privateKey.q) * privateKey.hq) % privateKey.q
 
-            // Solve using Chinese Remainder Theorem
-            let u = (mq-mp) * privateKey.pinv
-            return mp + ((u % privateKey.q) * privateKey.p)
-        case .bigIntDefault:
+        // Solve using Chinese Remainder Theorem
+        let u = (mq-mp) * privateKey.pinv
+        return mp + ((u % privateKey.q) * privateKey.p)*/
+        /*case .bigIntDefault:
             let lambda = (privateKey.p-1)*(privateKey.q-1)
-            let mu = L(x: publicKey.g.power(lambda.magnitude, modulus: publicKey.nsq), p: publicKey.n).inverse(publicKey.n)!
-            return (L(x: ciphertext.power(lambda, modulus: publicKey.nsq), p: publicKey.n) * mu) % publicKey.n
+            let mu = L(x: publicKey.n.power(lambda.magnitude, modulus: publicKey.nn), p: publicKey.n).inverse(publicKey.n)!
+            return (L(x: ciphertext.power(lambda, modulus: publicKey.nn), p: publicKey.n) * mu) % publicKey.n
         case .bigNumFast:
             let ciphertext = Bignum(ciphertext.description)
             let mp = (L(x: mod_exp(ciphertext, privateKey.pnum - 1, privateKey.psqnum), p: privateKey.pnum) * privateKey.hpnum) % privateKey.pnum
@@ -66,10 +67,10 @@ public final class Paillier {
         case .bigNumDefault:
             let ciphertext = Bignum(ciphertext.description)
             let lambda = (privateKey.pnum-1)*(privateKey.qnum-1)
-            let mu = inverse(L(x: mod_exp(publicKey.gnum, lambda, publicKey.nsqnum), p: publicKey.nnum), publicKey.nnum)!
-            return BigUInt(((L(x: mod_exp(ciphertext, lambda, publicKey.nsqnum), p: publicKey.nnum) * mu) % publicKey.nnum).string())!
-        }
-    }*/
+            let mu = inverse(L(x: mod_exp(publicKey.n, lambda, publicKey.nn), p: publicKey.n), publicKey.n)!
+            return BigUInt(((L(x: mod_exp(ciphertext, lambda, publicKey.n), p: publicKey.nn) * mu) % publicKey.nn).string())!*/
+        //}
+    //}
 
     public func encrypt(_ plaintext: BigUInt, publicKey: PublicKey) -> PaillierEncryption {
         return PaillierEncryption(plaintext, for: publicKey)
@@ -105,45 +106,57 @@ public extension Paillier {
         let q: BigUInt
 
         // MARK: Precomputed values
-        let psq: BigUInt
-        let qsq: BigUInt
+        let pp: BigUInt
+        let qq: BigUInt
+        let n: BigUInt
+        let nn: BigUInt
+        let pminusone: BigUInt
+        let qminusone: BigUInt
+        let phi: BigUInt
+        let dn: BigUInt
+        let dp: BigUInt
+        let dq: BigUInt
+        let ppinv: BigUInt
         let hp: BigUInt
         let hq: BigUInt
         let pinv: BigUInt
 
-        let pnum: Bignum
-        let qnum: Bignum
-        let psqnum: Bignum
-        let qsqnum: Bignum
-        let hpnum: Bignum
-        let hqnum: Bignum
-        let pinvnum: Bignum
-
-        init(p: BigUInt, q: BigUInt, g: BigUInt) {
+        init(p: BigUInt, q: BigUInt) {
             self.p = p
             self.q = q
-            psq = p.power(2)
-            qsq = q.power(2)
-            hp = Paillier.h(on: g, p: p, psq: psq)
-            hq = Paillier.h(on: g, p: q, psq: qsq)
+            pp = p.power(2)
+            qq = q.power(2)
+            n = p * q
+            nn = n * n
+            pminusone = p - 1
+            qminusone = q - 1
+            phi = pminusone * qminusone
+            dn = n.inverse(phi)!
+            (dp, dq) = Paillier.crt_decompose(x: dn, m1: pminusone, m2: qminusone)
             pinv = p.inverse(q)!
-
-            pnum = Bignum(p.description)
-            qnum = Bignum(q.description)
-            psqnum = Bignum(psq.description)
-            qsqnum = Bignum(qsq.description)
-            hpnum = Bignum(hp.description)
-            hqnum = Bignum(hq.description)
-            pinvnum = Bignum(pinv.description)
+            ppinv = pp.inverse(qq)!
+            hp = Paillier.h(p: p, pp: pp, n:n)
+            hq = Paillier.h(p: q, pp: qq, n:n)
         }
     }
 
-    static func h(on g: BigUInt, p: BigUInt, psq: BigUInt) -> BigUInt {
-        let parameter = g.power(p-1, modulus: psq) % psq
+    static func h(p: BigUInt, pp: BigUInt, n: BigUInt) -> BigUInt {
+        let gp = BigUInt.init(nnmod((Bignum.init("1") - Bignum.init(n.description)), Bignum.init(pp.description)).description)!
+        let lp = Paillier.l(u: gp, n: p)
+        let hp = lp.inverse(p)!
+        return hp
+        /*let parameter = g.power(p-1, modulus: psq) % psq
         let lOfParameter = (parameter-1)/p
-        return lOfParameter.inverse(p)!
+        return lOfParameter.inverse(p)!*/
+    }
+    
+    static func l(u: BigUInt, n: BigUInt) -> BigUInt {
+        return (u - 1) / n
     }
 
+    static func crt_decompose(x: BigUInt, m1: BigUInt, m2: BigUInt) -> (BigUInt, BigUInt) {
+        return (x % m1, x % m2)
+    }
 
     static func generateKeyPair(_ strength: Int = Paillier.defaultKeysize) -> KeyPair {
         var p, q: BigUInt
@@ -157,10 +170,10 @@ public extension Paillier {
         }
 
         let n = p*q
-        let g = n+1
+        let nn = n * n
 
-        let privateKey = PrivateKey(p: p, q: q, g: g)
-        let publicKey = PublicKey(n: n, nn: n * n)
+        let privateKey = PrivateKey(p: p, q: q)
+        let publicKey = PublicKey(n: n, nn: nn)
         return KeyPair(privateKey: privateKey, publicKey: publicKey)
     }
 }
@@ -191,25 +204,19 @@ public class PaillierEncryption: Encodable {
         isBlinded = false
     }
     
-    
     private func encrypt(_ plaintext: BigUInt) {
-        //let plaintextnum = BigUInt(plaintext.description)
         _ciphertext = rawEncrypt(plaintext)
         isBlinded = false
     }
 
     private func rawEncrypt(_ plaintext: BigUInt) -> BigUInt {
-        
         let r = Randomness(ek: publicKey)
         let rn = ((r * r) * publicKey.n) % publicKey.nn
         let gm = BigUInt(plaintext * publicKey.n + 1) % publicKey.nn
         let c = (gm * rn) % publicKey.nn
         
         return BigUInt(c)
-        //return (plaintext * publicKey.n + 1) % publicKey.nn
 
-        // General (default) solution:
-        //return publicKey.n.power(plaintext, modulus: publicKey.nn)
     }
 
     /*private func rawBlind(_ ciphertext: Bignum) -> Bignum {
