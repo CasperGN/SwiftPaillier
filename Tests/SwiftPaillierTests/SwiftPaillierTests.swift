@@ -11,7 +11,6 @@ final class SwiftPaillierTests: XCTestCase {
         let randomInt = BigUInt(12345678)
         let encryption = paillier.encrypt(randomInt, publicKey: ek)
     
-        print(encryption)
 
     }
 
