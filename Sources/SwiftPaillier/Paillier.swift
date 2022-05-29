@@ -205,10 +205,10 @@ public class PaillierEncryption: Encodable {
         let gm = BigUInt(plaintext * publicKey.n + 1) % publicKey.nn
         let c = (gm * rn) % publicKey.nn
         return BigUInt(c)*/
-        return (plaintext * publicKey.n + 1) % publicKey.nn
+        //return (plaintext * publicKey.n + 1) % publicKey.nn
 
         // General (default) solution:
-        // _ciphertext = publicKey.g.power(plaintext, modulus: publicKey.nsq)
+        return publicKey.g.power(plaintext, modulus: publicKey.nn)
     }
 
     /*private func rawBlind(_ ciphertext: Bignum) -> Bignum {
