@@ -118,7 +118,7 @@ public extension Paillier {
         let hp: BigUInt
         let hq: BigUInt
 
-        init(   p: BigUInt, q: BigUInt, g: BigUInt) {
+        init(p: BigUInt, q: BigUInt, g: BigUInt) {
             self.p = p
             self.q = q
             pp = p.power(2)
@@ -142,21 +142,11 @@ public extension Paillier {
         return lOfParameter.inverse(p)!
     }
 
-    static func generatePrime(_ width: Int) -> BigUInt {
-        while true {
-            var random = BigUInt.randomInteger(withExactWidth: width)
-            random |= BigUInt(1)
-            if Bignum(random.description).isPrime(rounds: 30) {
-                return random
-            }
-        }
-    }
-
     static func generateKeyPair(_ strength: Int = Paillier.defaultKeysize) -> KeyPair {
         var p, q: BigUInt
-        p = generatePrime(strength/2)
+        p = SamplePrime(bitsize: strength)
         repeat {
-            q = generatePrime(strength/2)
+            q = SamplePrime(bitsize: strength)
         } while p == q
 
         if q < p {
@@ -198,31 +188,6 @@ public class PaillierEncryption: Encodable {
         isBlinded = false
     }
     
-    // This function is derived from https://github.com/CasperGN/rust-paillier/blob/master/src/arithimpl/gmpimpl.rs#L20-L26
-    private func sample(bitsize: Int) -> BigUInt {
-        let bytes = (bitsize - 1) / 8 + 1
-        var buf: Array<Int> = []
-        for _ in 0...bytes {
-            buf.append(Int.random(in: 1..<10) >> (bytes * 8 - bitsize))
-        }
-        
-        return BigUInt(buf.reduce(0, {BigUInt($0) * 10 + BigUInt($1)}))
-    }
-    
-    private func SampleBelow(n: BigUInt) -> BigUInt {
-        let bits = n.bitWidth
-                
-        while true {
-            let m = sample(bitsize: bits)
-            if m < n {
-                return BigUInt(n)
-            }
-        }
-    }
-
-    private func Randomness(ek: Paillier.PublicKey) -> BigUInt {
-        SampleBelow(n: ek.n)
-    }
     
     private func encrypt(_ plaintext: BigUInt) {
         //let plaintextnum = BigUInt(plaintext.description)
@@ -319,4 +284,5 @@ public class PaillierEncryption: Encodable {
         isBlinded = false
         return self
     }*/
+    
 }
