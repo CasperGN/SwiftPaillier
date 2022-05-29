@@ -33,7 +33,7 @@ public func SamplePrime(bitsize: Int) -> BigUInt {
 
 public func IsPrime(candidate: BigUInt) -> Bool {
     
-    for p in SmallPrimes.makeIterator() {
+    for p in SmallPrimes {
         let prime = BigUInt(p)
         let r = candidate % prime
         if r == 0 {
