@@ -7,6 +7,7 @@
 
 import Foundation
 import CGMP
+import BigInt
 
 // This function is derived from https://github.com/CasperGN/rust-paillier/blob/master/src/arithimpl/gmpimpl.rs#L20-L26
 public func sample(bitsize: Int) -> BigUInt {
