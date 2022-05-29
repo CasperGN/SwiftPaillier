@@ -200,15 +200,16 @@ public class PaillierEncryption: Encodable {
 
     private func rawEncrypt(_ plaintext: BigUInt) -> BigUInt {
         
-        /*let r = Randomness(ek: publicKey)
-        let rn = r.power(publicKey.n, modulus: publicKey.nn)
+        let r = Randomness(ek: publicKey)
+        let rn = ((r * r) * publicKey.n) % publicKey.nn
         let gm = BigUInt(plaintext * publicKey.n + 1) % publicKey.nn
         let c = (gm * rn) % publicKey.nn
-        return BigUInt(c)*/
+        
+        return BigUInt(c)
         //return (plaintext * publicKey.n + 1) % publicKey.nn
 
         // General (default) solution:
-        return publicKey.n.power(plaintext, modulus: publicKey.nn)
+        //return publicKey.n.power(plaintext, modulus: publicKey.nn)
     }
 
     /*private func rawBlind(_ ciphertext: Bignum) -> Bignum {

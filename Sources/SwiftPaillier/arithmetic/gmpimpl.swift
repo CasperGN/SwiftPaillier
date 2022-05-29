@@ -26,7 +26,7 @@ public func SampleBelow(n: BigUInt) -> BigUInt {
     while true {
         let m = sample(bitsize: bits)
         if m < n {
-            return BigUInt(n)
+            return BigUInt(m)
         }
     }
 }
