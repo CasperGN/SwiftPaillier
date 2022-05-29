@@ -6,14 +6,19 @@
 //
 
 import BigInt
+import Bignum
 
 public func SamplePrime(bitsize: Int) -> BigUInt {
-    let one = BigUInt.init(stringLiteral: "1")
-    let two = one + one
-
     while true {
+        var candidate = BigUInt.randomInteger(withExactWidth: (bitsize / 2))
+        candidate |= BigUInt(1)
+        if Bignum(candidate.description).isPrime(rounds: 30) {
+            return candidate
+        }
+    }
+    /*while true {
 
-        var candidate = BigUInt.randomInteger(withExactWidth: bitsize)
+        var candidate = BigUInt.randomInteger(withExactWidth: bitsize / 2)
         
         if (candidate % 2 == 0) {
             candidate += one // Now it is odd
@@ -22,13 +27,10 @@ public func SamplePrime(bitsize: Int) -> BigUInt {
         // Set MSB of candidate
         // TODO - BitManipulation::set_bit(&mut candidate, bitsize - 1, true);
         
-        for _ in 0...500 {
-            if IsPrime(candidate: candidate) {
-                return candidate
-            }
-            candidate = candidate + two
+        if candidate.isPrime() {
+            return candidate
         }
-    }
+    }*/
 }
 
 public func IsPrime(candidate: BigUInt) -> Bool {
@@ -51,7 +53,7 @@ public func IsPrime(candidate: BigUInt) -> Bool {
 }
 
 
-let SmallPrimes = [
+var SmallPrimes:[Int] = [
     2,     3,     5,     7,     11,    13,    17,    19,    23,    29,    31,
     37,    41,    43,    47,    53,    59,    61,    67,    71,    73,    79,
     83,    89,    97,    101,   103,   107,   109,   113,   127,   131,   137,

@@ -105,42 +105,45 @@ public extension Paillier {
         let q: BigUInt
 
         // MARK: Precomputed values
-        let pp: BigUInt
-        let qq: BigUInt
-        let n: BigUInt
-        let nn: BigUInt
-        let pminusone: BigUInt
-        let qminusone: BigUInt
-        let phi: BigUInt
-        let dn: BigUInt
-        let pinv: BigUInt
-        let ppinv: BigUInt
+        let psq: BigUInt
+        let qsq: BigUInt
         let hp: BigUInt
         let hq: BigUInt
+        let pinv: BigUInt
+
+        let pnum: Bignum
+        let qnum: Bignum
+        let psqnum: Bignum
+        let qsqnum: Bignum
+        let hpnum: Bignum
+        let hqnum: Bignum
+        let pinvnum: Bignum
 
         init(p: BigUInt, q: BigUInt, g: BigUInt) {
             self.p = p
             self.q = q
-            pp = p.power(2)
-            qq = q.power(2)
-            n = p * q
-            nn = n * n
-            pminusone = p - 1
-            qminusone = q - 1
-            phi = pminusone * qminusone
-            dn = n.inverse(phi)!
+            psq = p.power(2)
+            qsq = q.power(2)
+            hp = Paillier.h(on: g, p: p, psq: psq)
+            hq = Paillier.h(on: g, p: q, psq: qsq)
             pinv = p.inverse(q)!
-            ppinv = pp.inverse(qq)!
-            hp = Paillier.h(on: g, p: p, pp: pp)
-            hq = Paillier.h(on: g, p: q, pp: qq)
+
+            pnum = Bignum(p.description)
+            qnum = Bignum(q.description)
+            psqnum = Bignum(psq.description)
+            qsqnum = Bignum(qsq.description)
+            hpnum = Bignum(hp.description)
+            hqnum = Bignum(hq.description)
+            pinvnum = Bignum(pinv.description)
         }
     }
 
-    static func h(on g: BigUInt, p: BigUInt, pp: BigUInt) -> BigUInt {
-        let parameter = g.power((p - 1), modulus: pp) % pp
+    static func h(on g: BigUInt, p: BigUInt, psq: BigUInt) -> BigUInt {
+        let parameter = g.power(p-1, modulus: psq) % psq
         let lOfParameter = (parameter-1)/p
         return lOfParameter.inverse(p)!
     }
+
 
     static func generateKeyPair(_ strength: Int = Paillier.defaultKeysize) -> KeyPair {
         var p, q: BigUInt
@@ -154,10 +157,10 @@ public extension Paillier {
         }
 
         let n = p*q
-        let nn = n * n
+        let g = n+1
 
-        let privateKey = PrivateKey(p: p, q: q, g: n)
-        let publicKey = PublicKey(n: n, nn: nn)
+        let privateKey = PrivateKey(p: p, q: q, g: g)
+        let publicKey = PublicKey(n: n, nn: n * n)
         return KeyPair(privateKey: privateKey, publicKey: publicKey)
     }
 }
