@@ -10,13 +10,10 @@ final class SwiftPaillierTests: XCTestCase {
         
         let randomInt = BigUInt(12345678)
         let encryption = paillier.encrypt(randomInt, publicKey: ek)
-        
-        debugPrint(ek)
-        debugPrint(dk)
     
-        //let plaintext = paillier.decrypt(publicKey: ek, privateKey: dk, ciphertext: encryption.ciphertext)
+        let plaintext = paillier.decrypt(publicKey: ek, privateKey: dk, ciphertext: encryption.ciphertext)
 
-        //debugPrint(plaintext)
+        debugPrint(plaintext)
     }
 
     static var allTests = [

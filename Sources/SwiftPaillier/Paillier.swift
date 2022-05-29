@@ -42,35 +42,25 @@ public final class Paillier {
         return (x-1)/p
     }
 
-    /*public func decrypt(publicKey: PublicKey, privateKey: PrivateKey, ciphertext: BigUInt) -> BigUInt {
-        let e = ((ciphertext * ciphertext) * (privateKey.p - BigUInt(1)))
-        debugPrint(e)
-        debugPrint(privateKey.psq)
-        let mp = (L(x: ciphertext.power(privateKey.p - 1, modulus: privateKey.psq), p: privateKey.p) * privateKey.hp) % privateKey.p
-        let mq = (L(x: ciphertext.power(privateKey.q - 1, modulus: privateKey.qsq), p: privateKey.q) * privateKey.hq) % privateKey.q
-
-        // Solve using Chinese Remainder Theorem
-        let u = (mq-mp) * privateKey.pinv
-        return mp + ((u % privateKey.q) * privateKey.p)*/
-        /*case .bigIntDefault:
-            let lambda = (privateKey.p-1)*(privateKey.q-1)
-            let mu = L(x: publicKey.n.power(lambda.magnitude, modulus: publicKey.nn), p: publicKey.n).inverse(publicKey.n)!
-            return (L(x: ciphertext.power(lambda, modulus: publicKey.nn), p: publicKey.n) * mu) % publicKey.n
-        case .bigNumFast:
-            let ciphertext = Bignum(ciphertext.description)
-            let mp = (L(x: mod_exp(ciphertext, privateKey.pnum - 1, privateKey.psqnum), p: privateKey.pnum) * privateKey.hpnum) % privateKey.pnum
-            let mq = (L(x: mod_exp(ciphertext, privateKey.qnum - 1, privateKey.qsqnum), p: privateKey.qnum) * privateKey.hqnum) % privateKey.qnum
-
-            // Solve using Chinese Remainder Theorem
-            let u = (mq-mp) * privateKey.pinvnum
-            return BigUInt((mp + ((u % privateKey.qnum) * privateKey.pnum)).string())!
-        case .bigNumDefault:
-            let ciphertext = Bignum(ciphertext.description)
-            let lambda = (privateKey.pnum-1)*(privateKey.qnum-1)
-            let mu = inverse(L(x: mod_exp(publicKey.n, lambda, publicKey.nn), p: publicKey.n), publicKey.n)!
-            return BigUInt(((L(x: mod_exp(ciphertext, lambda, publicKey.n), p: publicKey.nn) * mu) % publicKey.nn).string())!*/
-        //}
-    //}
+    public func decrypt(publicKey: PublicKey, privateKey: PrivateKey, ciphertext: BigUInt) -> BigUInt {
+        let (cp, cq) = Paillier.crt_decompose(x: ciphertext, m1: privateKey.pp, m2: privateKey.qq)
+        
+        // Process for p
+        // TODO: dp returns 0 which breaks further processing
+        let dp = cp.power(privateKey.pminusone, modulus: privateKey.pp)
+        let lp = Paillier.l(u: dp, n: privateKey.p)
+        let mp = (lp * privateKey.hp) % privateKey.p
+        
+        //process for q
+        // TODO: dq returns 0 which breaks further processing
+        let dq = cq.power(privateKey.qminusone, modulus: privateKey.qq)
+        let lq = Paillier.l(u: dq, n:privateKey.q)
+        let mq = (lq * privateKey.hq) % privateKey.q
+        
+        let m = Paillier.crt_recombine(x1: mp, x2: mq, m1: privateKey.p, m2: privateKey.q, m1inv: privateKey.pinv)
+        
+        return m
+    }
 
     public func encrypt(_ plaintext: BigUInt, publicKey: PublicKey) -> PaillierEncryption {
         return PaillierEncryption(plaintext, for: publicKey)
@@ -145,9 +135,6 @@ public extension Paillier {
         let lp = Paillier.l(u: gp, n: p)
         let hp = lp.inverse(p)!
         return hp
-        /*let parameter = g.power(p-1, modulus: psq) % psq
-        let lOfParameter = (parameter-1)/p
-        return lOfParameter.inverse(p)!*/
     }
     
     static func l(u: BigUInt, n: BigUInt) -> BigUInt {
@@ -157,7 +144,17 @@ public extension Paillier {
     static func crt_decompose(x: BigUInt, m1: BigUInt, m2: BigUInt) -> (BigUInt, BigUInt) {
         return (x % m1, x % m2)
     }
-
+    
+    static func crt_recombine(x1: BigUInt, x2: BigUInt, m1: BigUInt, m2: BigUInt, m1inv: BigUInt) -> BigUInt {
+        var diff = (x2 - x1) % m2
+        if diff < 0 {
+            diff += m2
+        }
+        let u = (diff * m1inv) % m2
+        let x = x1 + (u * m1)
+        return x
+    }
+    
     static func generateKeyPair(_ strength: Int = Paillier.defaultKeysize) -> KeyPair {
         var p, q: BigUInt
         p = SamplePrime(bitsize: strength)

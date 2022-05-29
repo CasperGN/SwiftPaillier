@@ -9,14 +9,11 @@ import BigInt
 import Bignum
 
 public func SamplePrime(bitsize: Int) -> BigUInt {
+
+    let one = BigUInt(1)
+    let two = one + one
+    
     while true {
-        var candidate = BigUInt.randomInteger(withExactWidth: (bitsize / 2))
-        candidate |= BigUInt(1)
-        if Bignum(candidate.description).isPrime(rounds: 30) {
-            return candidate
-        }
-    }
-    /*while true {
 
         var candidate = BigUInt.randomInteger(withExactWidth: bitsize / 2)
         
@@ -26,11 +23,14 @@ public func SamplePrime(bitsize: Int) -> BigUInt {
         
         // Set MSB of candidate
         // TODO - BitManipulation::set_bit(&mut candidate, bitsize - 1, true);
-        
-        if candidate.isPrime() {
-            return candidate
+        // TODO - is this even necessary?
+        for _ in 0...500 {
+            if IsPrime(candidate: candidate) {
+                return candidate
+            }
+            candidate += two
         }
-    }*/
+    }
 }
 
 public func IsPrime(candidate: BigUInt) -> Bool {
@@ -38,15 +38,13 @@ public func IsPrime(candidate: BigUInt) -> Bool {
     for p in SmallPrimes {
         let prime = BigUInt(p)
         let r = candidate % prime
-        if r == 0 {
+        debugPrint(candidate)
+        debugPrint(prime)
+        if !(r == 0) {
             continue
         } else {
             return false
         }
-    }
-    
-    if !candidate.isPrime() {
-        return false
     }
     
     return true
