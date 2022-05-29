@@ -38,8 +38,6 @@ public func IsPrime(candidate: BigUInt) -> Bool {
     for p in SmallPrimes {
         let prime = BigUInt(p)
         let r = candidate % prime
-        debugPrint(candidate)
-        debugPrint(prime)
         if !(r == 0) {
             continue
         } else {
