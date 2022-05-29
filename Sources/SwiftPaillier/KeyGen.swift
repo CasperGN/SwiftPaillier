@@ -18,7 +18,7 @@ public func SamplePrime(bitsize: Int) -> BigUInt {
         var candidate = BigUInt.randomInteger(withExactWidth: bitsize / 2)
         
         if (candidate % 2 == 0) {
-            candidate += one // Now it is odd
+            candidate += one
         }
         
         // Set MSB of candidate
@@ -47,7 +47,6 @@ public func IsPrime(candidate: BigUInt) -> Bool {
     
     return true
 }
-
 
 var SmallPrimes:[Int] = [
     2,     3,     5,     7,     11,    13,    17,    19,    23,    29,    31,
