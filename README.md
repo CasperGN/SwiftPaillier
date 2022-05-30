@@ -1,32 +1,33 @@
 # SwiftPaillier
 
-An implementation of Paillier's homomorphic encryption in Swift. It's made for scientific purposes, so be careful when using this library.
+An implementation of Paillier's homomorphic encryption in Swift. Forked to implement the functionality needed by Helicene-inc. The current implementation seeks to align the Paillier implementation in [rust-paillier](https://github.com/mortendahl/rust-paillier).
 
 ## Installation via SPM
 
 Declare a dependency on this package inside your `Package.swift`:
 ```swift
-.package(url: "https://github.com/code28/SwiftPaillier.git", from: "1.0.0"),
+.package(url: "https://github.com/helicene-inc/SwiftPaillier.git", from: "1.0.0"),
 // ...
 .target(..., dependencies: [..., "SwiftPaillier"]),
 ```
 
 ## Usage
 
+**NB:** Currently the decryption method does not yield the proper plaintext as supplied by input. This is currently being resolved.
+
 ```swift
 import BigInt
 import SwiftPaillier
 
-let crypto = Paillier()
-let cleartext = BigUInt(123456)
-let addend = BigUInt(44)
+let paillier = Paillier()
 
-let encryption = crypto.encrypt(cleartext)
-encryption.add(addend)
-let ciphertext = encryption.ciphertext
+let (ek, dk) = paillier.generateKeys(strength: 2048)
 
-let decryptedText = crypto.decrypt(ciphertext: ciphertext)
-assert((cleartext + addend) == decryptedText)
+let randomInt = BigUInt(12345678)
+let encryption = paillier.encrypt(randomInt, publicKey: ek)
+
+let plaintext = paillier.decrypt(publicKey: ek, privateKey: dk, ciphertext: encryption.ciphertext)
+assert((randomInt + plaintext) == decryptedText)
 ```
 
 ## License
