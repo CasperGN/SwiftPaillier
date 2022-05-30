@@ -34,6 +34,11 @@ assert((randomInt + plaintext) == decryptedText)
 
 The implementation of the `encrypt` and `decrypt` functions is based off of Section 7 - Efficiency and Implementation Aspects - in the [Public-Key Cryptosystems Based on Composite Degree Residuosity Classes by Pascal Paillier](http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.112.4035&rep=rep1&type=pdf) and seeks to optimize the decryption workload by utilizing the [C. Ding, D. Pei and A. Salomaa, Chinese Remainder Theorem - Applications in Computing, Coding, Cryptography, World Scientific Publishing, 1996](https://www.worldscientific.com/worldscibooks/10.1142/3254) (_NB: requires paid access_).
 
+### Lack of arithmetic operations
+
+The need for `Helicene-inc` does not require for the library to supply arithmetic operations and as a result of that, the arithmetic operations (subtract, addition, division and multiplication) has been removed.  
+The arithmetic operations _may_ be implemented in a later release again but for now it is not implemented.
+
 ### Notes about the implementation of decryption via CRT
 
 The current implementation is faulty and will result in following output when testing with Xcode:
