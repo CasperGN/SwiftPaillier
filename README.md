@@ -39,28 +39,36 @@ The implementation of the `encrypt` and `decrypt` functions is based off of Sect
 The need for `Helicene-inc` does not require for the library to supply arithmetic operations and as a result of that, the arithmetic operations (subtract, addition, division and multiplication) has been removed.  
 The arithmetic operations _may_ be implemented in a later release again but for now it is not implemented.
 
-### Notes about the implementation of decryption via CRT
+### Testing decryption
 
-The current implementation is faulty and will result in following output when testing with Xcode:
 
 ```swift
 let paillier = Paillier()
+
 let (ek, dk) = paillier.generateKeys(strength: 2048)
+
 let randomInt = BigUInt(12345678)
 let encryption = paillier.encrypt(randomInt, publicKey: ek)
-let plaintext = paillier.decrypt(publicKey: ek, privateKey: dk, ciphertext: encryption.ciphertext)
-debugPrint(plaintext)
+    
+let plaintext = paillier.decrypt(publicKey: ek, privateKey: dk, ciphertext: encryption.ciphertext)        
+assert(plaintext == randomInt)
 ```
 Yields
 ```
 ...
+Test Suite 'All tests' started at 2022-06-07 20:17:53.120
+Test Suite 'SwiftPaillierTests.xctest' started at 2022-06-07 20:17:53.120
+Test Suite 'SwiftPaillierTests' started at 2022-06-07 20:17:53.121
 Test Case '-[SwiftPaillierTests.SwiftPaillierTests testSimpleOperations]' started.
-688287295296352591312844918675360011498106387850333630615356840602852317781560232261444491033046029261795712713059700987232449210193799866200084601890389218231977976744307206253135502695832963877214718688249937196862976726030025203680331456986522794746718745640044127732777292500592624213951232581252726863425350998230046697479443843354663170864616213000956412413937955792910139810628380234043748594246288677913970966760240806250032014729111363432251972696253560340360702461896681556553518938824781626681863920529130071029773141988343936792049570584333387507046668543898301475988789499934608675715920202618899579535
-...
+Test Case '-[SwiftPaillierTests.SwiftPaillierTests testSimpleOperations]' passed (72.621 seconds).
+Test Suite 'SwiftPaillierTests' passed at 2022-06-07 20:19:05.742.
+	 Executed 1 test, with 0 failures (0 unexpected) in 72.621 (72.622) seconds
+Test Suite 'SwiftPaillierTests.xctest' passed at 2022-06-07 20:19:05.742.
+	 Executed 1 test, with 0 failures (0 unexpected) in 72.621 (72.622) seconds
+Test Suite 'All tests' passed at 2022-06-07 20:19:05.743.
+	 Executed 1 test, with 0 failures (0 unexpected) in 72.621 (72.623) seconds
 Program ended with exit code: 0
 ```
-
-The decrypted plaintext should result in `12345678`.
 
 ### Notes about Prime generation and verification
 
