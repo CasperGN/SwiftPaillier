@@ -45,7 +45,63 @@ public func IsPrime(candidate: BigUInt) -> Bool {
         }
     }
     
+    if !Fermat(candidate: candidate) {
+        return false
+    }
+    
+    /*if !RabinMiller(candidate: candidate, limit: 5) {
+        return false
+    }*/
+    
     return true
+}
+
+public func Fermat(candidate: BigUInt) -> Bool {
+    let random = SampleBelow(n: candidate)
+    let result = random.power(candidate - BigUInt(1), modulus: candidate)
+    
+    return result == BigUInt(1)
+}
+
+public func RabinMiller(candidate: BigUInt, limit: Int) -> Bool {
+    
+    let (s, d) = rewrite(n: candidate - BigUInt(1))
+    let one = BigUInt(1)
+    let two = one + one
+    
+    for _ in 0...limit {
+        let basis = sample_range(lower: two, upper: (candidate - two))
+        var y = basis.power(d, modulus: candidate)
+        
+        if y == one || y == (candidate - one) {
+            continue
+        } else {
+            var counter = BigUInt(1)
+            while counter < (s - one) {
+                y = y.power(two, modulus: candidate)
+                if y == one {
+                    return false
+                } else if y == candidate - one {
+                    break
+                }
+                counter += BigUInt(1)
+            }
+            return false
+        }
+    }
+    return true
+}
+
+public func rewrite(n: BigUInt) -> (BigUInt, BigUInt) {
+    var d = n
+    var s = BigUInt(0)
+    let one = BigUInt(1)
+    
+    while (d % 2 == 0) {
+        d = d >> 1
+        s = s + one
+    }
+    return (s, d)
 }
 
 var SmallPrimes:[Int] = [
