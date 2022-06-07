@@ -31,6 +31,10 @@ public func SampleBelow(n: BigUInt) -> BigUInt {
     }
 }
 
+public func sample_range(lower: BigUInt, upper: BigUInt) -> BigUInt {
+    return lower + SampleBelow(n: upper - lower)
+}
+
 public func Randomness(ek: Paillier.PublicKey) -> BigUInt {
     SampleBelow(n: ek.n)
 }
