@@ -12,8 +12,8 @@ final class SwiftPaillierTests: XCTestCase {
         let encryption = paillier.encrypt(randomInt, publicKey: ek)
     
         let plaintext = paillier.decrypt(publicKey: ek, privateKey: dk, ciphertext: encryption.ciphertext)
-
-        debugPrint(plaintext)
+        
+        assert(plaintext == randomInt)
     }
 
     static var allTests = [
